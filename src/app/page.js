@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useState } from "react";
 import axios from "axios";
-import Head from "next/head";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,6 +14,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [lastModifiedDate, setLastModifiedDate] = useState(null);
+  const [randomImage, setRandomImage] = useState(null);
 
   const onlineImages = ["/minussocial.png"];
 
@@ -57,6 +57,7 @@ export default function Home() {
     if (searchQuery.trim() && selectedServer.trim()) {
       setLoading(true);
       setErrorMessage("");
+      setRandomImage(getRandomImage(onlineImages));
 
       const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${selectedServer}/${searchQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
 
@@ -125,15 +126,6 @@ export default function Home() {
 
   return (
     <div className="relative flex justify-center items-center h-screen bg-gray-900">
-      <Head>
-        {onlineImages.map((img) => (
-          <link key={img} rel="preload" href={img} as="image" />
-        ))}
-        {ragequitImages.map((img) => (
-          <link key={img} rel="preload" href={img} as="image" />
-        ))}
-      </Head>
-
       {!hasSearched && (
         <div className="flex flex-col items-center">
           <div className="text-5xl font-bold text-white mb-16">
@@ -189,7 +181,7 @@ export default function Home() {
               QUEUED ANOTHER 😭
               <div>
                 <Image
-                  src={getRandomImage(onlineImages)}
+                  src={randomImage}
                   alt="Online Image"
                   width={256}
                   height={256}
@@ -212,7 +204,7 @@ export default function Home() {
               )}
               <div>
                 <Image
-                  src={getRandomImage(ragequitImages)}
+                  src={randomImage}
                   alt="Ragequit Image"
                   width={256}
                   height={256}
