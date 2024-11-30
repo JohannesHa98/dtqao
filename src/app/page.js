@@ -1,6 +1,6 @@
-'use client';
+"use client";
 import { useState } from "react";
-import axios from 'axios';
+import axios from "axios";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,27 +11,33 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [lastModifiedDate, setLastModifiedDate] = useState(null);
 
-  const apiUrl = `https://eu.api.blizzard.com/profile/wow/character/ravencrest/${searchQuery}/statistics?namespace=profile-eu&locale=en_US`;
+  const apiUrl = `https://eu.api.blizzard.com/profile/wow/character/ravencrest/${searchQuery}/statistics?namespace=profile-eu&locale=en_US&timestamp=${Date.now()}`;
 
   const getAccessToken = async () => {
     try {
-      const response = await axios.post('https://us.battle.net/oauth/token', null, {
-        params: {
-          grant_type: 'client_credentials',
-        },
-        auth: {
-          username: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_ID,
-          password: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_SECRET,
-        },
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-      });
-
+      const response = await axios.post(
+        "https://us.battle.net/oauth/token",
+        null,
+        {
+          params: {
+            grant_type: "client_credentials",
+          },
+          auth: {
+            username: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_ID,
+            password: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_SECRET,
+          },
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+        }
+      );
       return response.data.access_token;
     } catch (error) {
-      console.error('Error fetching access token:', error.response || error.message);
-      throw new Error('Failed to fetch access token');
+      console.error(
+        "Error fetching access token:",
+        error.response || error.message
+      );
+      throw new Error("Failed to fetch access token");
     }
   };
 
@@ -45,18 +51,32 @@ export default function Home() {
 
         const response = await axios.get(apiUrl, {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         });
 
-        const lastModified = response.headers['last-modified'];
-        const formattedDate = lastModified ? new Date(lastModified).toLocaleString() : "Unknown";
+        const lastModified = response.headers["last-modified"];
+        const formattedDate = lastModified
+          ? new Date(lastModified).toLocaleString()
+          : "Unknown";
         setLastModifiedDate(formattedDate);
 
         if (response.data) {
           setSearchResult(response.data);
-          const randomChoice = Math.random() < 0.5 ? "message1" : "message2";
-          setShowMessage(randomChoice);
+
+          if (lastModified) {
+            const lastModifiedDate = new Date(lastModified);
+            const now = new Date();
+            const timeDifference = (now - lastModifiedDate) / (1000 * 60);
+
+            if (timeDifference > 10) {
+              setShowMessage("message1");
+            } else {
+              setShowMessage("message2");
+            }
+          } else {
+            setShowMessage("message1");
+          }
         } else {
           setErrorMessage("No data found for this character.");
         }
@@ -78,7 +98,7 @@ export default function Home() {
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       handleSearch();
     }
   };
@@ -87,7 +107,9 @@ export default function Home() {
     <div className="relative flex justify-center items-center h-screen bg-gray-900">
       {!hasSearched && (
         <div className="flex flex-col items-center">
-          <div className="text-5xl font-bold text-white mb-16">DID THEY QUEUE ANOTHER ONE?🤔</div>
+          <div className="text-5xl font-bold text-white mb-16">
+            DID THEY QUEUE ANOTHER ONE?🤔
+          </div>
           <div>
             <input
               type="text"
@@ -116,22 +138,27 @@ export default function Home() {
 
           {showMessage === "message1" && !loading && !errorMessage && (
             <div className="text-5xl font-bold text-white mt-4">
-              <span className="text-green-400 uppercase">{searchResult?.character?.name}</span> QUEUED ANOTHER 😭
-              <div className="mt-2 text-lg">Realm: {searchResult?.character?.realm?.name}</div>
-              {lastModifiedDate && (
-                <div className="mt-2 text-lg text-white">
-                  Last Modified: {lastModifiedDate}
-                </div>
-              )}
+              <span className="text-green-400 uppercase">
+                {searchResult?.character?.name}
+              </span>{" "}
+              QUEUED ANOTHER 😭
+              <div className="mt-2 text-lg">
+                Realm: {searchResult?.character?.realm?.name}
+              </div>
             </div>
           )}
           {showMessage === "message2" && !loading && !errorMessage && (
             <div className="text-5xl font-bold text-white mt-4">
-              <span className="text-red-400 uppercase">{searchResult?.character?.name}</span> RAGEQUIT 😆
-              <div className="mt-2 text-lg">Realm: {searchResult?.character?.realm?.name}</div>
+              <span className="text-red-400 uppercase">
+                {searchResult?.character?.name}
+              </span>{" "}
+              RAGEQUIT 😆
+              <div className="mt-2 text-lg">
+                Realm: {searchResult?.character?.realm?.name}
+              </div>
               {lastModifiedDate && (
                 <div className="mt-2 text-lg text-white">
-                  Last Modified: {lastModifiedDate}
+                  Last online: {lastModifiedDate}
                 </div>
               )}
             </div>
