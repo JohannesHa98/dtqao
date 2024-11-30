@@ -10,12 +10,12 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-100">
+    <div className="flex justify-center items-center h-screen bg-gray-900">
       {showMessage === "message1" && (
-        <div className="text-5xl font-bold text-gray-800">THEY QUEUED ANOTHER 😭</div>
+        <div className="text-5xl font-bold text-gray-800 text-white">THEY QUEUED ANOTHER 😭</div>
       )}
       {showMessage === "message2" && (
-        <div className="text-5xl font-bold text-gray-800">THEY RAGEQUIT 😆</div>
+        <div className="text-5xl font-bold text-gray-800 text-white">THEY RAGEQUIT 😆</div>
       )}
     </div>
   );
