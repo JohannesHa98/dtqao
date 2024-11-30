@@ -1,95 +1,105 @@
-"use client";
-import { useState } from "react";
-import axios from "axios";
+'use client';
+
+import Image from 'next/image';
+import { useState } from 'react';
+import axios from 'axios';
 
 export default function Home() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedServer, setSelectedServer] = useState("");
-  const [selectedRegion, setSelectedRegion] = useState("eu"); // Default to EU
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedServer, setSelectedServer] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('eu');
   const [showMessage, setShowMessage] = useState(null);
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const [lastModifiedDate, setLastModifiedDate] = useState(null);
 
-  // Adjusting apiUrl based on selected region (EU or US)
-  const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${selectedServer}/${searchQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
+  const onlineImages = [
+    '/minussocial.png',
+  ];
+
+  const ragequitImages = [
+    '/rest.png',
+    '/knuckles.png',
+  ];
+
+  const getRandomImage = (imageList) => {
+    const randomIndex = Math.floor(Math.random() * imageList.length);
+    return imageList[randomIndex];
+  };
 
   const getAccessToken = async () => {
     try {
       const response = await axios.post(
-        "https://us.battle.net/oauth/token",
+        'https://us.battle.net/oauth/token',
         null,
         {
           params: {
-            grant_type: "client_credentials",
+            grant_type: 'client_credentials',
           },
           auth: {
             username: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_ID,
             password: process.env.NEXT_PUBLIC_BLIZZARD_CLIENT_SECRET,
           },
           headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
         }
       );
       return response.data.access_token;
     } catch (error) {
-      console.error(
-        "Error fetching access token:",
-        error.response || error.message
-      );
-      throw new Error("Failed to fetch access token");
+      console.error('Error fetching access token:', error.response || error.message);
+      throw new Error('Failed to fetch access token');
     }
   };
 
   const handleSearch = async () => {
     if (searchQuery.trim() && selectedServer.trim()) {
       setLoading(true);
-      setErrorMessage("");
+      setErrorMessage('');
+
+      const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${selectedServer}/${searchQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
 
       try {
         const accessToken = await getAccessToken();
-      
+
         const response = await axios.get(apiUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         });
-      
-        const lastModified = response.headers["last-modified"];
+
+        const lastModified = response.headers['last-modified'];
         const formattedDate = lastModified
           ? new Date(lastModified).toLocaleString()
-          : "Unknown";
+          : 'Unknown';
         setLastModifiedDate(formattedDate);
-      
+
         if (response.data) {
           setSearchResult(response.data);
-      
+
           if (lastModified) {
             const lastModifiedDate = new Date(lastModified);
             const now = new Date();
             const timeDifference = (now - lastModifiedDate) / (1000 * 60);
-      
-            if (timeDifference > 10) {
-              setShowMessage("message1");
+
+            if (timeDifference > 1000) {
+              setShowMessage('message1');
             } else {
-              setShowMessage("message2");
+              setShowMessage('message2');
             }
           } else {
-            setShowMessage("message1");
+            setShowMessage('message1');
           }
         } else {
-          setErrorMessage("No data found for this character.");
+          setErrorMessage('No data found for this character.');
         }
       } catch (error) {
         if (error.response && error.response.status === 404) {
-          // Specific message for 404 error (not found)
-          setErrorMessage("That guy does not seem to exist.");
+          setErrorMessage('That guy does not seem to exist.');
         } else {
-          // General error message for other errors
-          setErrorMessage("Failed to fetch data. Please try again.");
+          setErrorMessage('Failed to fetch data. Please try again.');
         }
       } finally {
         setLoading(false);
@@ -99,17 +109,17 @@ export default function Home() {
   };
 
   const handleBack = () => {
-    setSearchQuery("");
-    setSelectedServer("");
-    setSelectedRegion("eu"); // Reset to EU when going back
+    setSearchQuery('');
+    setSelectedServer('');
+    setSelectedRegion('eu');
     setShowMessage(null);
     setSearchResult(null);
     setHasSearched(false);
-    setErrorMessage("");
+    setErrorMessage('');
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+    if (e.key === 'Enter') {
       handleSearch();
     }
   };
@@ -130,7 +140,6 @@ export default function Home() {
               className="p-4 mr-2 w-80 rounded-md text-gray-900"
               placeholder="Character name"
             />
-            {/* Change this to an input text field for server */}
             <input
               type="text"
               value={selectedServer}
@@ -164,31 +173,44 @@ export default function Home() {
             <div className="text-red-500 font-bold">{errorMessage}</div>
           )}
 
-          {showMessage === "message1" && !loading && !errorMessage && (
+          {showMessage === 'message1' && !loading && !errorMessage && (
             <div className="text-5xl font-bold text-white mt-4">
               <span className="text-green-400 uppercase">
                 {searchResult?.character?.name}
-              </span>{" "}
+              </span>{' '}
               QUEUED ANOTHER 😭
-              <div className="mt-2 text-lg">
-                Realm: {searchResult?.character?.realm?.name}
+              <div>
+                <Image
+                  src={getRandomImage(onlineImages)}
+                  alt="Online Image"
+                  width={256}
+                  height={256}
+                  className="rounded-lg absolute right-72 transform rotate-[330deg]"
+                />
               </div>
             </div>
           )}
-          {showMessage === "message2" && !loading && !errorMessage && (
+
+          {showMessage === 'message2' && !loading && !errorMessage && (
             <div className="text-5xl font-bold text-white mt-4">
               <span className="text-red-400 uppercase">
                 {searchResult?.character?.name}
-              </span>{" "}
+              </span>{' '}
               RAGEQUIT 😆
-              <div className="mt-2 text-lg">
-                Realm: {searchResult?.character?.realm?.name}
-              </div>
               {lastModifiedDate && (
                 <div className="mt-2 text-lg text-white">
                   Last online: {lastModifiedDate}
                 </div>
               )}
+              <div>
+                <Image
+                  src={getRandomImage(ragequitImages)}
+                  alt="Ragequit Image"
+                  width={256}
+                  height={256}
+                  className="rounded-lg absolute right-72 transform rotate-[330deg]"
+                />
+              </div>
             </div>
           )}
 
