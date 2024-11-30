@@ -4,6 +4,8 @@ import axios from "axios";
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedServer, setSelectedServer] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("eu"); // Default to EU
   const [showMessage, setShowMessage] = useState(null);
   const [searchResult, setSearchResult] = useState(null);
   const [hasSearched, setHasSearched] = useState(false);
@@ -11,7 +13,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState("");
   const [lastModifiedDate, setLastModifiedDate] = useState(null);
 
-  const apiUrl = `https://eu.api.blizzard.com/profile/wow/character/ravencrest/${searchQuery}/statistics?namespace=profile-eu&locale=en_US&timestamp=${Date.now()}`;
+  // Adjusting apiUrl based on selected region (EU or US)
+  const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${selectedServer}/${searchQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
 
   const getAccessToken = async () => {
     try {
@@ -42,33 +45,33 @@ export default function Home() {
   };
 
   const handleSearch = async () => {
-    if (searchQuery.trim()) {
+    if (searchQuery.trim() && selectedServer.trim()) {
       setLoading(true);
       setErrorMessage("");
 
       try {
         const accessToken = await getAccessToken();
-
+      
         const response = await axios.get(apiUrl, {
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         });
-
+      
         const lastModified = response.headers["last-modified"];
         const formattedDate = lastModified
           ? new Date(lastModified).toLocaleString()
           : "Unknown";
         setLastModifiedDate(formattedDate);
-
+      
         if (response.data) {
           setSearchResult(response.data);
-
+      
           if (lastModified) {
             const lastModifiedDate = new Date(lastModified);
             const now = new Date();
             const timeDifference = (now - lastModifiedDate) / (1000 * 60);
-
+      
             if (timeDifference > 10) {
               setShowMessage("message1");
             } else {
@@ -81,7 +84,13 @@ export default function Home() {
           setErrorMessage("No data found for this character.");
         }
       } catch (error) {
-        setErrorMessage("Failed to fetch data. Please try again.");
+        if (error.response && error.response.status === 404) {
+          // Specific message for 404 error (not found)
+          setErrorMessage("That guy does not seem to exist.");
+        } else {
+          // General error message for other errors
+          setErrorMessage("Failed to fetch data. Please try again.");
+        }
       } finally {
         setLoading(false);
         setHasSearched(true);
@@ -91,6 +100,8 @@ export default function Home() {
 
   const handleBack = () => {
     setSearchQuery("");
+    setSelectedServer("");
+    setSelectedRegion("eu"); // Reset to EU when going back
     setShowMessage(null);
     setSearchResult(null);
     setHasSearched(false);
@@ -116,14 +127,31 @@ export default function Home() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="p-4 mr-2 w-96 rounded-md text-gray-900"
-              placeholder="Search for a name..."
+              className="p-4 mr-2 w-80 rounded-md text-gray-900"
+              placeholder="Character name"
             />
+            {/* Change this to an input text field for server */}
+            <input
+              type="text"
+              value={selectedServer}
+              onChange={(e) => setSelectedServer(e.target.value)}
+              onKeyDown={handleKeyDown}
+              className="p-4 mr-2 w-80 rounded-md text-gray-900"
+              placeholder="Server name"
+            />
+            <select
+              value={selectedRegion}
+              onChange={(e) => setSelectedRegion(e.target.value)}
+              className="absolute top-8 left-8 p-4 w-20 bg-purple-600 text-white rounded-md hover:bg-purple-700 cursor-pointer"
+            >
+              <option value="eu">EU</option>
+              <option value="us">US</option>
+            </select>
             <button
               onClick={handleSearch}
-              className="p-4 w-32 bg-purple-600 text-white rounded-md"
+              className="p-4 w-32 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
             >
-              Search
+              SEARCH
             </button>
           </div>
         </div>
@@ -166,7 +194,7 @@ export default function Home() {
 
           <button
             onClick={handleBack}
-            className="absolute top-8 right-8 p-4 w-32 bg-purple-600 text-white rounded-md"
+            className="absolute top-8 right-8 p-4 w-32 bg-purple-600 hover:bg-purple-700 text-white rounded-md"
           >
             BACK
           </button>
