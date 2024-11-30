@@ -32,12 +32,14 @@ export default function Home() {
   return (
     <div className="relative flex justify-center items-center h-screen bg-gray-900">
       {!hasSearched && (
-        <div className="flex items-center">
+        <div className="flex flex-col items-center">
+          <div className="text-5xl font-bold text-white mb-16">DID THEY QUEUE ANOTHER ONE?🤔</div>
+          <div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            onKeyDown={handleKeyDown} // Add event listener for "Enter"
+            onKeyDown={handleKeyDown}
             className="p-4 mr-2 w-96 rounded-md text-gray-900"
             placeholder="Search for a name..."
           />
@@ -47,6 +49,7 @@ export default function Home() {
           >
             Search
           </button>
+          </div>
         </div>
       )}
 
