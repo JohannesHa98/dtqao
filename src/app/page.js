@@ -84,7 +84,7 @@ export default function Home() {
             const now = new Date();
             const timeDifference = (now - lastModifiedDate) / (1000 * 60);
 
-            if (timeDifference > 1000) {
+            if (timeDifference > 10) {
               setShowMessage('message1');
             } else {
               setShowMessage('message2');
