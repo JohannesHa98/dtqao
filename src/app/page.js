@@ -57,7 +57,10 @@ export default function Home() {
       setLoading(true);
       setErrorMessage("");
 
-      const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${selectedServer}/${searchQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
+      const formattedQuery = searchQuery.trim().toLowerCase();
+      const formattedServer = selectedServer.trim().toLowerCase();
+
+      const apiUrl = `https://${selectedRegion}.api.blizzard.com/profile/wow/character/${formattedServer}/${formattedQuery}/statistics?namespace=profile-${selectedRegion}&locale=en_US&timestamp=${Date.now()}`;
 
       try {
         const accessToken = await getAccessToken();
